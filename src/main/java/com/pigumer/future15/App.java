@@ -29,12 +29,16 @@ public class App {
             Integer n2 = task2.get();
             logger.info(String.format("%d - 2: %d", message, n2));
         } catch (Exception e) {
+            logger.error("error", e);
             throw new RuntimeException(e);
         }
     }
 
     public static void main(String[] args) throws Exception {
-        IntStream.range(1, 4).forEach(n -> send(n));
+        IntStream.range(1, 100).forEach(n -> {
+            logger.info(String.format("send %d", n));
+            send(n);
+        });
 
         ((ExecutorService) executor).shutdown();
     }

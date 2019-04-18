@@ -38,7 +38,10 @@ public class App {
     }
 
     public static void main(String[] args) throws Exception {
-        IntStream.range(1, 4).forEach(n -> send(n));
+        IntStream.range(1, 100).forEach(n -> {
+            logger.info(String.format("send: %d", n));
+            send(n);
+        });
 
         Thread.sleep(10000);
         ((ExecutorService) executor).shutdown();
