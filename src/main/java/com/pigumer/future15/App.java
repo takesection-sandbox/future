@@ -1,46 +1,40 @@
 package com.pigumer.future15;
 
-import com.pigumer.common.HogeHogeFunction;
-import com.pigumer.common.HogeSupplier;
+import com.pigumer.common.CallableFunction;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.concurrent.*;
+import java.util.concurrent.Executor;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.FutureTask;
+import java.util.stream.IntStream;
 
 public class App {
-    private static Logger logger = LoggerFactory.getLogger("main");
+    private static final Logger logger = LoggerFactory.getLogger("main");
+    private static final Executor executor = Executors.newFixedThreadPool(2);
+
+    private static void send(Integer message) {
+        try {
+            FutureTask<Integer> task1 = new FutureTask<>(
+                    new CallableFunction(message)
+            );
+            executor.execute(task1);
+            Integer n = task1.get();
+            logger.info(String.format("%d - 1: %d", message, n));
+            FutureTask<Integer> task2 = new FutureTask<>(
+                    new CallableFunction(n)
+            );
+            executor.execute(task2);
+            Integer n2 = task2.get();
+            logger.info(String.format("%d - 2: %d", message, n2));
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
 
     public static void main(String[] args) throws Exception {
-        Executor executor = Executors.newFixedThreadPool(1);
-
-        FutureTask<String> hogeTask = new FutureTask<String>(new Callable<String>() {
-            @Override
-            public String call() throws Exception {
-                String hoge = new HogeSupplier().get();
-                logger.info(hoge);
-                return hoge;
-            }
-        });
-
-
-        logger.info("start");
-        executor.execute(hogeTask);
-        String hoge = hogeTask.get();
-        logger.info(hoge);
-
-        FutureTask<Integer> hogehogeTask = new FutureTask<>(new Callable<Integer>() {
-            @Override
-            public Integer call() throws Exception {
-                Integer n = new HogeHogeFunction().apply(hoge);
-                logger.info(String.valueOf(n));
-                return n;
-            }
-        });
-        executor.execute(hogehogeTask);
-        Integer n = hogehogeTask.get();
-        logger.info(String.valueOf(n));
-
-        logger.info("final");
+        IntStream.range(1, 4).forEach(n -> send(n));
 
         ((ExecutorService) executor).shutdown();
     }
